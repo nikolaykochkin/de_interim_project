@@ -7,3 +7,5 @@ Dataholics team interim project. Data Engineer course Yandex Practicum.
 
 
 тут был Андрей 2
+
+тут был Андрей 2
