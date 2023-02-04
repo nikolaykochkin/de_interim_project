@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:latest
+    hostname: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: "P@ssw0rd"
+      POSTGRES_DB: de_interim_project
+    ports:
+      - "5432:5432"
+    networks:
+      - de_interim_project_net
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+
+  metabase:
+    image: metabase/metabase:latest
+    hostname: metabase
+    container_name: metabase
+    ports:
+      - "3000:3000"
+    networks:
+      - de_interim_project_net
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: metabase
+      MB_DB_PASS: "P@ssw0rd"
+      MB_DB_HOST: postgres
+    depends_on:
+      - postgres
+
+
+networks:
+  de_interim_project_net:
+    driver: bridge
+
+volumes:
+  postgres-data:
