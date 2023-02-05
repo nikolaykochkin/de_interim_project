@@ -1,5 +1,6 @@
 # de_interim_project
 Dataholics team interim project. Data Engineer course Yandex Practicum.
+
 Цель проекта: 
 - Построить пайплайн для выгрузки данных и построения витрин. 
 Выполнение: 
