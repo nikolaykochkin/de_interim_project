@@ -1,5 +1,4 @@
 # Импорт стандартных библиотек
-from datetime import datetime
 import sys
 # Импорт компонентов pyspark
 from pyspark.sql import SparkSession
@@ -7,7 +6,7 @@ from pyspark.sql import functions as F
 
 # параметры подключения 
 HOST = '158.160.52.27'
-POSTGRES_URL = f'jdbc:postgresql://{HOST}:5432/jovyan'
+POSTGRES_URL = f'jdbc:postgresql://{HOST}:5432/postgres'
 POSTGRES_CONNECTION = {'user':'jovyan', 'password':'jovyan', 'driver': 'org.postgresql.Driver'}
 
 # Ожидаемые колонки для вывода
@@ -71,29 +70,15 @@ def load_df(spark, url):
 
 def transform(df):
     return df\
-        .withColumn('product_type', F.expr(f"""
-            case 
-                when page_url_path like '/product%' then substring(page_url_path, 10, length(page_url_path)-9)
-                else 'None'
-            end
-            """))\
-        .withColumn('event_type', F.expr(f"""
-            case 
-                when page_url_path like '/product%' then 'product'
-                else substring(page_url_path, 2, length(page_url_path))
-            end
-            """))\
             .withColumn('event_hour', F.date_trunc('hour', 'event_timestamp'))\
-            .groupBy(GROUP_COLS).agg(F.count('event_hour').alias('events_count'))\
-            .select(OUT_COLS)
+            .where(r"page_url_path = '/confirmation'")    
 
 # Вывод в Postgres
-# Вывод в Postgres
-def output_to_ps(df):
+def output_to_ps(df, tablename):
     df.write.format('jdbc')\
-            .mode('append')\
+            .mode('overwrite')\
             .option('url', POSTGRES_URL)\
-            .option('dbtable', 'cdm.dm_events_count')\
+            .option('dbtable', tablename)\
             .options(**POSTGRES_CONNECTION)\
             .save()
 
@@ -106,7 +91,7 @@ def main():
     # парсим json
     df = transform(df)
     # запускаем отправку в PS
-    output_to_ps(df)
+    output_to_ps(df, 'cdm.dm_purchases')
 
 if __name__ == "__main__":
     main()
