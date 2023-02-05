@@ -11,8 +11,44 @@ POSTGRES_URL = f'jdbc:postgresql://{HOST}:5432/jovyan'
 POSTGRES_CONNECTION = {'user':'jovyan', 'password':'jovyan', 'driver': 'org.postgresql.Driver'}
 
 # Ожидаемые колонки для вывода
-OUT_COLS = []
-GROUP_COLS = [] 
+OUT_COLS = [
+    'event_type',
+    'events_count',
+    'event_hour'
+    'product_type'
+    'geo_country', 
+    'geo_latitude', 
+    'geo_longitude', 
+    'geo_region_name', 
+    'geo_timezone', 
+    'referer_medium', 
+    'referer_url', 
+    'referer_url_port', 
+    'referer_url_scheme', 
+    'utm_campaign', 
+    'utm_content', 
+    'utm_medium', 
+    'tm_source',
+]
+GROUP_COLS = [
+        'event_type',
+    'event_hour',
+    'product_type'
+    'geo_country', 
+    'geo_latitude', 
+    'geo_longitude', 
+    'geo_region_name', 
+    'geo_timezone', 
+    'referer_medium', 
+    'referer_url', 
+    'referer_url_port', 
+    'referer_url_scheme', 
+    'utm_campaign', 
+    'utm_content', 
+    'utm_medium', 
+    'tm_source',
+]
+]
 
 # Обработка входных параметров скрипта
 try:
@@ -39,7 +75,7 @@ def transform(df):
         .withColumn('product_type', F.expr(f"""
             case 
                 when page_url_path like '/product%' then substring(page_url_path, 10, length(page_url_path)-9)
-                else 'page'
+                else 'None'
             end
             """))\
         .withColumn('event_type', F.expr(f"""
@@ -49,7 +85,7 @@ def transform(df):
             end
             """))\
             .withColumn('event_hour', F.date_trunc('hour', 'event_timestamp'))\
-            .groupBy(GROUP_COLS).agg(F.count('event_hour').alias('count'))\
+            .groupBy(GROUP_COLS).agg(F.count('event_hour').alias('events_count'))\
             .select(OUT_COLS)
 
 # Вывод в Postgres
@@ -71,7 +107,6 @@ def main():
     df = transform(df)
     # запускаем отправку в PS
     output_to_ps(df)
-
 
 if __name__ == "__main__":
     main()
